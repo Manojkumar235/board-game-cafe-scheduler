@@ -1,67 +1,137 @@
-import copy
-import data
-import billing
-import booking
-import manage
-import utils
+tables = [
+    {"table_id": "T1", "capacity": 2, "is_available": True},
+    {"table_id": "T2", "capacity": 2, "is_available": False},
+    {"table_id": "T3", "capacity": 4, "is_available": True},
+    {"table_id": "T4", "capacity": 4, "is_available": False},
+    {"table_id": "T5", "capacity": 6, "is_available": True},
+    {"table_id": "T6", "capacity": 8, "is_available": True},
+]
 
+games = [
+    {"game_id": "G1", "title": "Catan", "min_players": 3, "max_players": 4, "total_copies": 3, "available_copies": 2, "hourly_rate": 150.0},
+    {"game_id": "G2", "title": "Ticket to Ride", "min_players": 2, "max_players": 5, "total_copies": 2, "available_copies": 2, "hourly_rate": 120.0},
+    {"game_id": "G3", "title": "Codenames", "min_players": 4, "max_players": 8, "total_copies": 4, "available_copies": 4, "hourly_rate": 100.0},
+    {"game_id": "G4", "title": "Azul", "min_players": 2, "max_players": 4, "total_copies": 2, "available_copies": 2, "hourly_rate": 120.0},
+    {"game_id": "G5", "title": "Chess", "min_players": 2, "max_players": 2, "total_copies": 3, "available_copies": 2, "hourly_rate": 80.0},
+    {"game_id": "G6", "title": "Dune: Imperium", "min_players": 1, "max_players": 4, "total_copies": 1, "available_copies": 1, "hourly_rate": 200.0},
+    {"game_id": "G7", "title": "Splendor", "min_players": 2, "max_players": 4, "total_copies": 3, "available_copies": 3, "hourly_rate": 110.0},
+    {"game_id": "G8", "title": "Dixit", "min_players": 3, "max_players": 6, "total_copies": 2, "available_copies": 2, "hourly_rate": 130.0},
+    {"game_id": "G9", "title": "Pandemic", "min_players": 2, "max_players": 4, "total_copies": 2, "available_copies": 2, "hourly_rate": 140.0},
+]
 
-def run_data_edge_tests():
-    assert data.filter_tables_by_group_size(data.tables, 0) == []
-    assert data.filter_tables_by_group_size(data.tables, -1) == []
-    assert data.filter_tables_by_group_size(data.tables, 20) == []
-    assert len(data.filter_tables_by_group_size(data.tables, 4)) == 3
-    assert data.filter_games_by_group_size(data.games, 0) == []
-    assert data.filter_games_by_group_size(data.games, 15) == []
-    assert len(data.filter_games_by_group_size(data.games, 4)) == 7
-
-
-def run_billing_tests():
-    catan = data.find_game_by_id(data.games, "G1")
-    standard_total = billing.calculate_session_charge(4, 3.0, catan["hourly_rate"])
-    assert standard_total == 1050.0
-    marathon_total = billing.calculate_session_charge(4, 4.0, catan["hourly_rate"])
-    assert marathon_total == 1260.0
-
-
-def run_lifecycle_tests():
-    test_tables = copy.deepcopy(data.tables)
-    test_games = copy.deepcopy(data.games)
-    test_bookings = copy.deepcopy(data.bookings)
-
-    t3 = data.find_table_by_id(test_tables, "T3")
-    g2 = data.find_game_by_id(test_games, "G2")
-    assert t3["is_available"] is True
-    assert g2["available_copies"] == 2
-
-    t3["is_available"] = False
-    g2["available_copies"] -= 1
-    new_booking = {
-        "booking_id": "B104",
-        "customer_name": "Test Guest",
-        "group_size": 4,
-        "table_id": "T3",
-        "game_id": "G2",
-        "hours": 4.0,
-        "total_charge": billing.calculate_session_charge(4, 4.0, g2["hourly_rate"]),
+bookings = [
+    {
+        "booking_id": "B101",
+        "customer_name": "Rohan Sharma",
+        "group_size": 2,
+        "table_id": "T2",
+        "game_id": "G5",
+        "hours": 2.0,
+        "total_charge": 360.0,
         "status": "Active"
+    },
+    {
+        "booking_id": "B102",
+        "customer_name": "Ananya Nair",
+        "group_size": 4,
+        "table_id": "T4",
+        "game_id": "G1",
+        "hours": 3.0,
+        "total_charge": 1050.0,
+        "status": "Active"
+    },
+    {
+        "booking_id": "B103",
+        "customer_name": "Vikram Rao",
+        "group_size": 5,
+        "table_id": "T5",
+        "game_id": "G3",
+        "hours": 4.0,
+        "total_charge": 1260.0,
+        "status": "Completed"
     }
-    test_bookings.append(new_booking)
+]
 
-    assert new_booking["total_charge"] == 1152.0
-    assert t3["is_available"] is False
-    assert g2["available_copies"] == 1
 
-    t3["is_available"] = True
-    g2["available_copies"] += 1
-    new_booking["status"] = "Completed"
+def view_all_tables(tables_list):
+    print("\n==========================================")
+    print("               CAFÉ TABLES")
+    print("==========================================")
+    print(f"{'ID':<8} {'Capacity':<14} {'Status':<14}")
+    print("-" * 42)
+    for t in tables_list:
+        cap_text = f"{t['capacity']} Seats"
+        status = "Available" if t["is_available"] else "Occupied"
+        print(f"{t['table_id']:<8} {cap_text:<14} {status:<14}")
+    print("==========================================")
 
-    assert t3["is_available"] is True
-    assert g2["available_copies"] == 2
+
+def view_all_games(games_list):
+    print("\n=====================================================================")
+    print("                         BOARD GAME LIBRARY")
+    print("=====================================================================")
+    print(f"{'ID':<6} {'Title':<20} {'Players':<12} {'Available':<12} {'Rate/Hr':<12}")
+    print("-" * 69)
+    for g in games_list:
+        players = f"{g['min_players']}-{g['max_players']}"
+        avail = f"{g['available_copies']}/{g['total_copies']}"
+        print(f"{g['game_id']:<6} {g['title']:<20} {players:<12} {avail:<12} ₹{g['hourly_rate']:<11.2f}")
+    print("=====================================================================")
+
+
+def filter_tables_by_group_size(tables_list, group_size):
+    if group_size <= 0:
+        return []
+    matching = []
+    for t in tables_list:
+        if t["is_available"] and t["capacity"] >= group_size:
+            matching.append(t)
+    return matching
+
+
+def filter_games_by_group_size(games_list, group_size):
+    if group_size <= 0:
+        return []
+    matching = []
+    for g in games_list:
+        if g["min_players"] <= group_size <= g["max_players"] and g["available_copies"] > 0:
+            matching.append(g)
+    return matching
+
+
+def find_table_by_id(tables_list, table_id):
+    target = table_id.strip().upper()
+    for t in tables_list:
+        if t["table_id"].upper() == target:
+            return t
+    return None
+
+
+def find_game_by_id(games_list, game_id):
+    target = game_id.strip().upper()
+    for g in games_list:
+        if g["game_id"].upper() == target:
+            return g
+    return None
+
+
+def find_booking_by_id(bookings_list, booking_id):
+    target = booking_id.strip().upper()
+    for b in bookings_list:
+        if b["booking_id"].upper() == target:
+            return b
+    return None
 
 
 if __name__ == "__main__":
-    run_data_edge_tests()
-    run_billing_tests()
-    run_lifecycle_tests()
-    print("All procedural integration checks passed cleanly.")
+    view_all_tables(tables)
+    view_all_games(games)
+    assert filter_tables_by_group_size(tables, 0) == []
+    assert filter_tables_by_group_size(tables, -2) == []
+    assert filter_tables_by_group_size(tables, 12) == []
+    assert filter_games_by_group_size(games, 0) == []
+    assert filter_games_by_group_size(games, 10) == []
+    assert find_table_by_id(tables, "t1")["capacity"] == 2
+    assert find_game_by_id(games, "g1")["title"] == "Catan"
+    assert find_booking_by_id(bookings, "b101")["customer_name"] == "Rohan Sharma"
+    print("\nAll data.py edge-case checks passed.")
