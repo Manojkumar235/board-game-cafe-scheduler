@@ -24,6 +24,12 @@ def _get_game(choice):
         return game.get("title", game.get("name", f"Game {choice}")), game
 
     choice_text = str(choice).strip().lower()
+    if choice_text.isdigit():
+        game_index = int(choice_text)
+        if 1 <= game_index <= len(game_items):
+            game = game_items[game_index - 1]
+            return game.get("title", game.get("name", f"Game {game_index}")), game
+
     for index, game in enumerate(game_items, start=1):
         game_id = game.get("game_id", index)
         name = game.get("title", game.get("name", str(game_id)))
