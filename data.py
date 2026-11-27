@@ -54,7 +54,8 @@ def view_all_games(games_list):
 
 
 def filter_tables_by_group_size(tables_list, group_size):
-    """Returns available tables large enough for the group."""
+    if group_size <= 0:
+        return []
     matching = []
     for t in tables_list:
         if t["is_available"] and t["capacity"] >= group_size:
@@ -63,9 +64,48 @@ def filter_tables_by_group_size(tables_list, group_size):
 
 
 def filter_games_by_group_size(games_list, group_size):
-    """Returns available games suited to the exact group size."""
+    if group_size <= 0:
+        return []
     matching = []
     for g in games_list:
         if g["min_players"] <= group_size <= g["max_players"] and g["available_copies"] > 0:
             matching.append(g)
     return matching
+
+
+def find_table_by_id(tables_list, table_id):
+    target = table_id.strip().upper()
+    for t in tables_list:
+        if t["table_id"].upper() == target:
+            return t
+    return None
+
+
+def find_game_by_id(games_list, game_id):
+    target = game_id.strip().upper()
+    for g in games_list:
+        if g["game_id"].upper() == target:
+            return g
+    return None
+
+
+def find_booking_by_id(bookings_list, booking_id):
+    target = booking_id.strip().upper()
+    for b in bookings_list:
+        if b["booking_id"].upper() == target:
+            return b
+    return None
+
+
+if __name__ == "__main__":
+    view_all_tables(tables)
+    view_all_games(games)
+    assert filter_tables_by_group_size(tables, 0) == []
+    assert filter_tables_by_group_size(tables, -2) == []
+    assert filter_tables_by_group_size(tables, 12) == []
+    assert filter_games_by_group_size(games, 0) == []
+    assert filter_games_by_group_size(games, 10) == []
+    assert find_table_by_id(tables, "t1")["capacity"] == 2
+    assert find_game_by_id(games, "g1")["title"] == "Catan"
+    assert find_booking_by_id(bookings, "b101")["customer_name"] == "Rohan Sharma"
+    print("\nAll data.py edge-case checks passed.")
